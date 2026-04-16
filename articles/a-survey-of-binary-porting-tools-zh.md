@@ -94,27 +94,23 @@ Apple 并非第一次面对架构迁移。2006 年，Mac 从 PowerPC 迁移到 I
 
 结果：翻译后的应用通常能达到原生性能的 **70–90%**。
 
-### Microsoft Prism
+### Microsoft XTA / Prism（x86-to-Arm）
 
-微软的 ARM 之路走得远比 Apple 曲折。早在 2017 年，微软就与高通合作推出了首批 Windows on ARM 设备（如 Surface Pro X 的前身），但早期只能模拟 32 位 x86 应用，性能羸弱，生态贫瘠，市场反响冷淡。直到 2021 年 Windows 11 才正式引入 x64 模拟支持，核心翻译引擎称为 **XTA**（x86-to-Arm）。XTA 完成了从 0 到 1 的突破，但效率仍然不尽如人意。2024 年，随着高通骁龙 X Elite（Oryon 架构）的问世和 Windows 11 24H2 的发布，微软推出了 XTA 的"进化终极版"—— **[Prism](https://learn.microsoft.com/en-us/windows/arm/apps-on-arm-x86-emulation)**。Prism 不是简单的品牌重塑，而是底层算法的推倒重来：首次完整支持 AVX/AVX2 等复杂指令集，深度适配 Oryon 的宽流水线架构，翻译效率比老款 XTA 提升了 10–20%。如果说 XTA 类似于 Apple 当年的 Rosetta 1（勉强能跑），那么 Prism 就是微软的 Rosetta 2（用户几乎感知不到翻译的存在）。
+微软的 ARM 之路走得远比 Apple 曲折。早在 2017 年，微软就与高通合作推出了首批 Windows on ARM 设备（如 Surface Pro X 的前身），但早期只能模拟 32 位 x86 应用，性能羸弱，生态贫瘠，市场反响冷淡。直到 2021 年 Windows 11 才正式引入 x64 模拟支持，核心翻译引擎称为 **XTA**（x86-to-Arm）。XTA 完成了从 0 到 1 的突破，但效率仍然不尽如人意。2024 年，随着高通骁龙 X Elite（Oryon 架构）的问世和 Windows 11 24H2 的发布，微软推出了 XTA 的"进化终极版"—— **Prism**。Prism 不是简单的品牌重塑，而是底层算法的推倒重来：首次完整支持 AVX/AVX2 等复杂指令集，深度适配 Oryon 的宽流水线架构，翻译效率比老款 XTA 提升了 10–20%。如果说 XTA 类似于 Apple 当年的 Rosetta 1（勉强能跑），那么 Prism 就是微软的 Rosetta 2（用户几乎感知不到翻译的存在）。
 
 Prism 在运行时将 x64 代码翻译为 ARM64，其核心机制包括：
 
-- **代码缓存**：翻译后的代码块被缓存到磁盘，后续启动速度接近原生。
+- **代码缓存**：翻译后的代码块被缓存到磁盘，后续启动接近原生速度。
 - **Arm64EC（Emulation Compatible）**：一种混合 ABI，允许原生 ARM64 代码和模拟的 x64 代码在同一进程中共存。系统 DLL（`ntdll.dll`、`kernel32.dll`）以原生 ARM64 版本加载，而应用逻辑在模拟模式下运行。
 - **硬件协作**：高通骁龙 X Elite 包含硬件 TSO 支持和优化的标志位映射，类似于 Apple 的方案。
 
-Arm64EC 通过牺牲了一些 ARM64 性能（参数传递的寄存器使用从 8 个减少到 4 个，寄存器集受限），换取与 x64 代码的无缝互操作。
-如果要避免由此带来的性能损失，应该优先运行纯 ARM64 ABI 的应用程序。
+Arm64EC 的权衡：它牺牲了一些 ARM64 性能（参数传递的寄存器使用从 8 个减少到 4 个，寄存器集受限），换取与 x64 代码的无缝互操作。尽管其 ABI 为兼容 x64 而有所调整，但 Arm64EC 编译出的代码本质上仍是原生 ARM64 指令，可以与纯原生 ARM64 模块直接互操作。
 
 ## 三、Windows 兼容层
 
-除了指令集级别的模拟或者虚拟化外，ABI 兼容是另一个重要的二进制可移植性实现方式。
+### Wine（Wine Is Not an Emulator）
 
-### Wine
-
-**Wine** 的名字含义是 Wine Is Not an Emulator，即 Wine 不是模拟器。
-它是在运行时将 Windows API 调用翻译为 POSIX/Linux 等价调用。它不模拟 CPU 指令——它为操作系统接口提供兼容层。
+**Wine** 在运行时将 Windows API 调用翻译为 POSIX/Linux 等价调用。它不模拟 CPU 指令——它为操作系统接口提供兼容层。
 
 - 在 Linux 之上实现 Windows 系统调用、DLL 加载、注册表和 COM 基础设施。
 - 提供 x86 和 ARM64 两种构建版本。在 ARM64 上运行时，Wine 处理 API 翻译，而另一个工具（Box64 或 FEX）处理指令翻译。
