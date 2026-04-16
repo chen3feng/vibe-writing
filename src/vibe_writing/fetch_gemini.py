@@ -16,54 +16,35 @@ Library usage::
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 from pathlib import Path
+from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
-from playwright.sync_api import sync_playwright
+
+from vibe_writing._browser import fetch_rendered_html
+from vibe_writing._format import format_as_json, format_as_text
+
+
+# ---------------------------------------------------------------------------
+# URL helpers
+# ---------------------------------------------------------------------------
+
+
+def is_gemini_url(url: str) -> bool:
+    """Return True if *url* looks like a Gemini share link."""
+    host = (urlparse(url).hostname or "").lower()
+    path = urlparse(url).path
+    if host == "gemini.google.com" and "/share/" in path:
+        return True
+    if host == "g.co" and "/gemini/share/" in path:
+        return True
+    return False
 
 
 # ---------------------------------------------------------------------------
 # Core functions (importable by other scripts / AI agents)
 # ---------------------------------------------------------------------------
-
-def fetch_rendered_html(url: str, *, wait_seconds: int = 8, timeout_ms: int = 60000) -> str:
-    """Fetch a Gemini shared conversation URL and return the fully rendered HTML.
-
-    Uses a headless Chromium browser via Playwright to execute JavaScript
-    and wait for dynamic content to load.
-
-    Args:
-        url: A Gemini share URL (gemini.google.com/share/... or g.co/gemini/share/...).
-        wait_seconds: Extra seconds to wait after DOM content loaded for JS rendering.
-        timeout_ms: Navigation timeout in milliseconds.
-
-    Returns:
-        The fully rendered HTML string.
-    """
-    with sync_playwright() as p:
-        browser = p.chromium.launch(headless=True)
-        context = browser.new_context(
-            user_agent=(
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/131.0.0.0 Safari/537.36"
-            ),
-            viewport={"width": 1920, "height": 1080},
-        )
-        page = context.new_page()
-        try:
-            page.goto(url, wait_until="domcontentloaded", timeout=timeout_ms)
-            page.wait_for_timeout(wait_seconds * 1000)
-            # Scroll to bottom to trigger lazy-loaded content
-            page.evaluate("window.scrollTo(0, document.body.scrollHeight)")
-            page.wait_for_timeout(2000)
-            html = page.content()
-        finally:
-            page.close()
-            browser.close()
-    return html
 
 
 def parse_gemini_html(html: str) -> list[dict]:
@@ -104,7 +85,7 @@ def fetch_and_parse(url: str, **kwargs) -> list[dict]:
 
     Args:
         url: A Gemini share URL.
-        **kwargs: Passed to :func:`fetch_rendered_html`.
+        **kwargs: Passed to :func:`~vibe_writing._browser.fetch_rendered_html`.
 
     Returns:
         A list of conversation turn dicts.
@@ -114,44 +95,16 @@ def fetch_and_parse(url: str, **kwargs) -> list[dict]:
 
 
 # ---------------------------------------------------------------------------
-# Formatting helpers
-# ---------------------------------------------------------------------------
-
-def format_as_text(turns: list[dict]) -> str:
-    """Format conversation turns as human-readable Markdown text."""
-    lines: list[str] = []
-    q_index = 0
-    for turn in turns:
-        if turn["role"] == "user":
-            q_index += 1
-            lines.append(f"## Q{q_index}: {turn['text']}")
-            lines.append("")
-        elif turn["role"] == "model":
-            lines.append(turn["text"])
-            lines.append("")
-            lines.append("---")
-            lines.append("")
-        else:
-            lines.append(turn["text"])
-            lines.append("")
-    return "\n".join(lines)
-
-
-def format_as_json(turns: list[dict]) -> str:
-    """Format conversation turns as a JSON string."""
-    return json.dumps(turns, ensure_ascii=False, indent=2)
-
-
-# ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
+
 
 def _clean_query_text(text: str) -> str:
     """Remove 'You said' prefix that Gemini prepends to user queries."""
     text = text.strip()
     for prefix in ("You said:", "You said"):
         if text.startswith(prefix):
-            text = text[len(prefix):].strip()
+            text = text[len(prefix) :].strip()
             break
     return text
 
@@ -159,6 +112,7 @@ def _clean_query_text(text: str) -> str:
 # ---------------------------------------------------------------------------
 # CLI entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> None:
     """CLI entry point for ``fetch-gemini``."""
@@ -168,11 +122,13 @@ def main() -> None:
     )
     parser.add_argument("url", help="Gemini share URL to fetch")
     parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         help="Output file path (default: stdout)",
     )
     parser.add_argument(
-        "-f", "--format",
+        "-f",
+        "--format",
         choices=["text", "json"],
         default="text",
         help="Output format (default: text)",

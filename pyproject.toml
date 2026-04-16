@@ -1,6 +1,6 @@
 [project]
 name = "vibe-writing"
-version = "0.1.0"
+version = "0.2.0"
 description = "AI-friendly tools for vibe writing — fetch, parse, and transform web content into article material."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -8,14 +8,17 @@ license = "MIT"
 authors = [
     { name = "chen3feng" },
 ]
-keywords = ["writing", "ai", "gemini", "web-scraping", "article"]
+keywords = ["writing", "ai", "gemini", "chatgpt", "doubao", "web-scraping", "article"]
 
 dependencies = [
     "beautifulsoup4>=4.12",
     "playwright>=1.40",
+    "mcp[cli]>=1.0",
 ]
 
 [project.scripts]
+vibe-fetch = "vibe_writing.fetch:main"
+vibe-mcp = "vibe_writing.mcp_server:main"
 fetch-gemini = "vibe_writing.fetch_gemini:main"
 
 [build-system]
@@ -24,6 +27,12 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/vibe_writing"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py311"
 
 [tool.uv]
 dev-dependencies = [
