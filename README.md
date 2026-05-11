@@ -5,6 +5,8 @@ English | [中文](README-zh.md)
 AI-friendly Python toolkit for **vibe writing** — fetch, parse, and transform web content into article material.
 
 > *"Vibe writing"*: You describe what you want to write about, AI gathers material and drafts it, you review and refine.
+>
+> **⚠️ Important**: AI chat transcripts (Gemini, ChatGPT, etc.) **may contain factual errors**. All key facts (names, dates, numbers, technical details) must be independently verified before writing — never rely on unverified claims from chat transcripts.
 
 ## Features
 
@@ -13,6 +15,7 @@ AI-friendly Python toolkit for **vibe writing** — fetch, parse, and transform 
 - 🛠️ **CLI + Library** — Use from the command line or import in your own scripts / AI agents.
 - 🤖 **MCP Server** — Expose tools via [Model Context Protocol](https://modelcontextprotocol.io/) for direct AI agent invocation.
 - 📋 **AI Skill** — Includes a [`SKILL.md`](SKILL.md) descriptor so AI assistants can discover and use the tools.
+- ✍️ **Writing Style Guide** — See [`WRITING_STYLE.md`](WRITING_STYLE.md) for AI-assisted writing in the author's personal style.
 
 ## Supported Platforms
 

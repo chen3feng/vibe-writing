@@ -5,6 +5,8 @@
 面向 AI 辅助写作的 Python 工具库 —— 抓取、解析、转换网页内容为文章素材。
 
 > *"Vibe writing"（氛围写作）*：你描述想写什么，AI 收集素材并起草，你审阅和润色。
+>
+> **⚠️ 重要提示**：AI 聊天记录（Gemini、ChatGPT 等）中的内容**可能包含事实错误**。写作前必须对关键事实（人名、时间、数字、技术细节）进行独立核查，不得直接采信聊天记录中的未经确认的陈述。
 
 ## 功能特性
 
@@ -13,6 +15,7 @@
 - 🛠️ **命令行 + 库** —— 支持命令行使用，也可在脚本或 AI Agent 中导入调用。
 - 🤖 **MCP 服务** —— 通过 [Model Context Protocol](https://modelcontextprotocol.io/) 暴露工具，AI 助手可直接调用。
 - 📋 **AI Skill** —— 包含 [`SKILL.md`](SKILL.md) 描述文件，AI 助手可自动发现和使用工具。
+- ✍️ **写作风格指南** —— 见 [`WRITING_STYLE.md`](WRITING_STYLE.md)，供 AI 辅助写作时模仿个人风格。
 
 ## 支持的平台
 
@@ -23,6 +26,15 @@
 | 豆包 (Doubao) | `www.doubao.com/thread/...` | ✅ |
 
 ## 快速开始
+
+如果没有 python，先安装：
+
+```
+# Windows
+winget install -e --id Python.Python
+```
+
+安装 [uv](https://docs.astral.sh/uv/getting-started/installation/)
 
 ```bash
 # 用 uv 安装依赖
