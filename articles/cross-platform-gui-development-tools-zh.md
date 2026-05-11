@@ -1,12 +1,16 @@
-# GUI 开发三维地图：技术实现、目标平台与语言生态的正交切片（2026版）
+# GUI 框架到底怎么选？试试这张三维地图（2026）
 
-> 不再用"桌面 vs 移动 vs Web"这种一刀切的旧分类。这一次，我们把所有主流 GUI 框架放进一张三轴坐标系：**怎么画（技术实现）、在哪跑（目标平台）、谁在用（语言生态）**——同一个框架在三章里各出现一次，每次讲一个不同的切面。
+> 超越"桌面 vs 移动 vs Web"的老套分类，把所有主流 GUI 框架放进技术实现 × 目标平台 × 语言生态的三维坐标系——同一个框架在三章里各出现一次，每次讲一个不同的切面。
 
-## 引言：为什么需要三条正交主线
+## 引言：一个老后端开发者的 GUI 眩晕
 
-GUI 开发的世界远比想象中复杂。在 Windows 这一座"老宅"里，微软堆叠了 20 多年的 GUI 框架全家桶；在跨平台领域，Tauri、Flutter、Avalonia 等新锐层出不穷；在游戏引擎里，Slate、UMG、Dear ImGui 又各自为政。
+我长期做后台开发，但 GUI 一直是我放不下的兴趣。学生时代啃 Win32 API，拿 Spy++ 拆解各种窗口的句柄树；读侯捷那本《深入浅出 MFC》，第一次理解了框架代码怎么在底层钩住消息循环。毕业后第一份工作做硬盘还原卡，在操作系统引导之前就要画出界面——我用 VC 1.5 从零实现了一个类 Windows 98 风格的 GUI，窗口、按钮、菜单、对话框全自己画，那段经历让我对"像素是怎么来的"有了肌肉记忆。
 
-如果你只用"桌面、移动、Web"来分类，会得到一堆互相矛盾的答案：Tauri 算桌面还是 Web？Flutter 算移动还是跨平台？Compose 算 Android 还是桌面？
+最近业余想写几个跨平台的 GUI 小工具，打开搜索引擎一搜——直接懵了。
+
+Qt 还是 Electron？Flutter 还是 Tauri？WPF 还是 WinUI 3？更不要说 Kotlin Compose Multiplatform、Avalonia、Slint 这些不断冒出来的新名字。每种推荐背后都有理由，但把这些推荐放在一起，就像让一个 MFC 时代过来的人和一个现代前端工程师讨论"最好的 UI 框架"——他们说的根本不是一个维度。
+
+实际上，GUI 框架之间没法用单一维度排名。同一框架在不同维度上的得分完全不同。比如 Qt：在"跨平台能力"上接近满分，在"包体积"上可能是负分。Electron：在"开发效率"上无敌，在"内存占用"上被骂了十年。
 
 更有解释力的做法，是把它拆成三条**正交的主线**：
 
@@ -85,7 +89,7 @@ GUI 开发的世界远比想象中复杂。在 Windows 这一座"老宅"里，�
 
 **代表**：
 
-- **Electron**（老大哥）：自带 Chromium + Node.js。VS Code、Discord、Slack、Figma、Notion 都在用。标准脚手架是 `electron-vite`，采用**双进程模型**——主进程（Node.js）负责系统 API，渲染进程（Chromium）跑 UI，两者通过 **IPC**（`ipcRenderer` / `ipcMain`）通信。
+- **Electron**（老大哥）：自带 Chromium + Node.js。VS Code、Discord、Slack、Figma、Notion 都在用。社区事实标准脚手架是 `create @quick-start/electron`（基于 electron-vite），采用**双进程模型**——主进程（Node.js）负责系统 API，渲染进程（Chromium）跑 UI，两者通过 **IPC**（`ipcRenderer` / `ipcMain`）通信。
 - **Tauri**（Rust 后端挑战者）：抛弃自带 Chromium，改用**系统 WebView**（Windows 的 WebView2、macOS 的 WebKit、Linux 的 WebKitGTK），后端换成 Rust。Tauri 2.0 正式支持 iOS 和 Android。
 - **Wails**（Go 后端挑战者）：架构与 Tauri 类似，后端用 Go。
 - **PyWebView**（Python 后端）：最简化的 Python 桌面方案。
@@ -150,7 +154,9 @@ GUI 开发的世界远比想象中复杂。在 Windows 这一座"老宅"里，�
 - **渲染路径**：对 `user32.dll` 的利用非常单纯——申请一个空白窗口，接管 `WM_PAINT`，在内存里画好后一次性 BitBlt 到窗口。
 - **体积极小**：编译出来可能只有几百 KB，相比 Qt 的几十 MB 优势明显。
 
-**身世八卦**：Duilib 的鼻祖是丹麦开发者 **Bjarke Viksoe**（2006-2007 年的 DirectUI Demo），真正命名和推广者是中国开发者 **"微蓝"（wielan）**。它**没有固定所属公司**，属于开源社区项目。后来**网易的 nim_duilib** 和腾讯的魔改版接过维护大旗，成为功能最全的分支。
+**身世八卦**：Duilib 的思想源头是丹麦开发者 **Bjarke Viksoe** 2005 年的一篇技术文章《UI: Become windowless》——他论证了"所有控件都不创建 HWND，直接在父窗口上自绘"的可行性。2010 年，中国开发者 **wangchyz**（GitHub 头号贡献者，95 次提交）在 Viksoe 的示例代码基础上打造了第一个实用版本，2010 年 8 月 21 日发布，名字取自 **D**irect**UI** + **lib**。MIT 协议，5800+ stars，1900+ forks。
+
+这是一个非常"中国式"的开发生态——没有固定所属公司，纯粹由社区驱动，但因为极度轻量（几百 KB）且协议宽松，国内各大公司纷纷 fork 出自己的魔改版：**腾讯云 IM、网易云信 nim_duilib**（2019 年 C++11 重构版）、百度、阿里、金山等内部都各有分支。甚至微软官方的 vcpkg 也将它收录入库。从 QQ、各种游戏登录器、百度杀毒到无数股票行情软件——Duilib 可能是你从未听说但每天都在用的 UI 库。[基于 Duilib 的软件不完全列表](https://github.com/duilib/duilib/wiki/%E5%9F%BA%E4%BA%8EDuilib%E7%9A%84%E8%BD%AF%E4%BB%B6%E4%B8%8D%E5%AE%8C%E5%85%A8%E5%88%97%E8%A1%A8)。
 
 **Windows 专属底层**：DComp（合成器）、DWM（桌面窗口管理器）、DirectWrite（文字渲染）、Direct2D（2D 矢量图）——它们是 WinUI 3 现代视觉效果的底层基石。
 
@@ -475,15 +481,41 @@ Rust 实现的跨平台图形 API，统一 Vulkan / Metal / DX12 / OpenGL 接口
 | **游戏工具链 × 立即模式** | Dear ImGui / egui | 几行代码嵌入任何渲染上下文 |
 | **游戏成品 UI × 保留模式** | UE5 UMG + Common UI / Unity UI Toolkit | 引擎原生方案 |
 
+### 生态热度速查
+
+选型不能只看技术能力，社区热度决定你遇到 Bug 时是搜到 Stack Overflow 还是自己啃源码。以下是大致数量级（2026 年初，GitHub stars 近似值，仅供参考）：
+
+| 框架 | GitHub Stars | 社区规模 | 核心用户群 |
+|------|:----------:|:------:|-----------|
+| **Flutter** | 176k+ | 🔥🔥🔥🔥🔥 | Google 力推，移动端跨平台霸主 |
+| **Electron** | 121k+ | 🔥🔥🔥🔥🔥 | VS Code / Discord / Slack / Notion 都在用 |
+| **Tauri** | 106k+ | 🔥🔥🔥🔥 | Rust 社区最热的 GUI 项目，增速最快 |
+| **Dear ImGui** | 73k+ | 🔥🔥🔥🔥 | 游戏行业标配，暴雪/育碧/任天堂赞助 |
+| **Qt** | 分散多仓库 | 🔥🔥🔥🔥 | 三十年积累，工业/车载/嵌入式无处不在 |
+| **WPF / WinForms** | .NET 生态一部分 | 🔥🔥🔥🔥 | 企业 Windows 桌面的事实标准，招聘池最深 |
+| **Wails** | 34k+ | 🔥🔥🔥 | Go 桌面开发头号推荐 |
+| **Avalonia** | 31k+ | 🔥🔥🔥 | .NET 跨平台社区首选 |
+| **Iced** | 30k+ | 🔥🔥🔥 | COSMIC 桌面环境背书 |
+| **Fyne** | 28k+ | 🔥🔥🔥 | 纯 Go 自绘，单二进制分发 |
+| **Slint** | 23k+ | 🔥🔥 | 前 Qt 团队，嵌入式 GUI 新贵 |
+| **Compose Multiplatform** | 19k+ | 🔥🔥 | JetBrains 生态，Android 开发者顺滑迁移 |
+| **Uno Platform** | 10k+ | 🔥🔥 | .NET 跨平台黑马 |
+| **WinUI 3** | 7.5k+ | 🔥🔥 | 微软官方推荐，但生态仍在建设 |
+| **wxWidgets** | 7.1k+ | 🔥🔥 | Audacity / FileZilla / KiCad 等知名开源项目 |
+| **Duilib** | 5.9k+ | 🔥🔥 | 中国 Windows 桌面生态的隐形冠军 |
+| **SwiftUI** | Apple 官方 | 🔥🔥🔥🔥 | Apple 全家桶新项目默认选择 |
+| **MAUI** | .NET 生态一部分 | 🔥🔥 | 微软多端方案，仍在追赶 |
+
+> 明星数不代表一切——WPF 和 WinForms 没有独立的 GitHub 仓库但招聘市场最大，Qt 分散在数十个仓库但工业界无处不在。热度表只是帮你判断"出问题时有多少人能帮你"。
+
 ---
 
-## 结语：三条主线交汇处的四大趋势
+## 结语：三个趋势和一条铁律
 
-三条正交主线切下来，能看到 2026 年 GUI 世界的四个共同趋势：
+三条正交主线切完，能看到 2026 年 GUI 世界的三个共同方向：
 
-1. **主线一方向：自绘吞并一切**。从 WPF 到 Flutter 再到 Tauri，越来越多的框架选择向系统只要一个空白窗口，其余全部自己画——这是唯一能在不同平台上保持一致视觉体验的路线。原生控件派正在退守到"纯 Windows 内部工具"和"Apple 官方生态"两个堡垒。
-2. **主线二方向：每个平台都有自己的合成器**。Windows 的 DComp、macOS 的 Core Animation、Linux 的 Wayland Compositor——系统级合成器正在把"窗口管理"从 CPU 剥离到 GPU，让毛玻璃、云母、子像素动画成为标配。
-3. **主线三方向：每门现代语言都要有自己的 GUI 原生方案**。Swift 有 SwiftUI、Kotlin 有 Compose、Rust 有 Slint/Iced、Go 有 Fyne/Wails——语言生态已经不满足于"绑定一个 C++ 库"，而是要一套语言原生的声明式 UI。
-4. **共同方向：分层解耦越来越清晰**。窗口/合成/2D 渲染/UI 框架四层边界越来越分明，让开发者可以精准地定位性能瓶颈，也让每一层都能独立演化。Skia 能被 Chrome、Flutter、Kotlin CMP、Avalonia 共用，正是这种解耦的成果。
+1. **自绘正在吞并一切**。越来越多的框架选择向系统只拿一个空白窗口，其余全部自己画——这是唯一能在不同平台上保持视觉一致性的路线。原生控件派正在退守到"纯 Windows 内部工具"和"Apple 生态"两个堡垒。
+2. **每门语言都要有自己的原生方案**。Swift 有 SwiftUI、Kotlin 有 Compose、Rust 有 Slint/Iced、Go 有 Fyne/Wails——语言社区已经不满足于"绑定 C++ 库"，而是要一套自己语言原生的声明式 UI。
+3. **分层解耦让渲染引擎可以"复用但不绑定"**。Skia 能被 Chrome、Flutter、Avalonia、Kotlin CMP 共用，wgpu 能让 Rust 生态的 GUI 和游戏引擎共享同一套 GPU 抽象——这是解耦的成果，也是未来新框架能快速起飞的跑道。
 
-无论你是在维护一个 20 年历史的 WinForms 项目、用 WPF 写商业软件、在 UE5 里做游戏工具，还是用 Tauri 打造新一代桌面应用——把你的项目放进"技术实现 × 目标平台 × 语言生态"的三维坐标系里，大概率能找到已经被别人趟过的那条最佳路径。
+而一条铁律始终没变：**"最好的框架"永远是那个跟你的团队技能栈、目标平台和性能预算重叠最多的那个。** 与其在论坛里看人吵架，不如把你的需求放进"怎么画 × 在哪跑 × 谁在写"的三维坐标系——答案大概率已经在那里了。
