@@ -259,6 +259,8 @@ Apple 自己则在 2023 年 WWDC 上出手了。**GPTK（Game Porting Toolkit）
 
 这套方案的完整链路是：x86 Windows 游戏 → Rosetta 2（指令翻译）→ Wine/GPTK（API 翻译）→ D3DMetal（图形翻译）→ Metal GPU 原生执行。
 
+但遗憾的是反过来就不行。目前没有任何方案能让 macOS 的 GUI 程序在 Windows 或 Linux 上运行。macOS 的 Cocoa/SwiftUI 框架不像 Windows 的 Win32 API 有明确的边界——它深度绑定在 XNU 内核上，没有一条可以被拦截和翻译的干净分界线。Wine 能成功，部分原因是微软把 Win32 API 当公共承诺来维护；Apple 没给这个承诺。唯一有点接近的尝试是 **Darling**，一个在 Linux 上跑 macOS 二进制文件的开源项目——但它迄今只支持命令行程序，跑个 `grep` 和 `clang` 还行，启动 Finder 别想了。Windows 上更是空白。Mac 是整个二进制兼容网络里唯一"只进不出"的节点——别的平台都能把软件送出去，只有 Mac 只接收不发送。目前跨平台运行 Mac 应用唯一可行的方案是虚拟机——这已经超出了本文的讨论范围。
+
 ### 4.3 Microsoft XTA / Prism（x86-to-Arm）
 
 微软的 ARM 之路走得远比 Apple 曲折。早在 2017 年，微软就与高通合作推出了首批 Windows on ARM 设备（如 Surface Pro X 的前身），但早期只能模拟 32 位 x86 应用，性能羸弱，生态贫瘠，市场反响冷淡。直到 2021 年 Windows 11 才正式引入 x64 模拟支持，核心翻译引擎称为 **XTA**（x86-to-Arm）。XTA 完成了从 0 到 1 的突破，但效率仍然不尽如人意。2024 年，随着高通骁龙 X Elite（Oryon 架构）的问世和 Windows 11 24H2 的发布，微软推出了 XTA 的"进化终极版"—— **Prism**。Prism 不是简单的品牌重塑，而是底层算法的推倒重来：首次完整支持 AVX/AVX2 等复杂指令集，深度适配 Oryon 的宽流水线架构，翻译效率比老款 XTA 提升了 10–20%。如果说 XTA 类似于 Apple 当年的 Rosetta 1（勉强能跑），那么 Prism 就是微软的 Rosetta 2（用户几乎感知不到翻译的存在）。
