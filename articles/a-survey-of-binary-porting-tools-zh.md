@@ -70,32 +70,32 @@
 
 **解释执行与动态重编译**
 
-- **解释执行**：逐条读取并执行指令。简单但慢。早期 NES/GB 模拟器和 **MAME**（为了街机精确性）使用此方式。这些游戏机都是一二十年前的老机器，模拟带来的性能损失对于 PC 来说不是问题。
+- **解释执行**：逐条读取并执行指令。简单但慢。早期 NES/GB 模拟器和 [**MAME**](https://www.mamedev.org)（为了街机精确性）使用此方式。这些游戏机都是一二十年前的老机器，模拟带来的性能损失对于 PC 来说不是问题。
 - **动态重编译（JIT）**：将客户机代码块翻译为宿主机器码并缓存。现代高性能游戏主机模拟器普遍使用此方式。
 
 **HLE 与 LLE：两种模拟哲学**
 
-- **HLE（High-Level Emulation，高层模拟）**：不模拟底层硬件，而是直接用宿主系统的功能替代原始系统调用。代表作 **UltraHLE**（1999 年）是第一个能在当时的 PC 上流畅运行 N64 游戏的模拟器，轰动一时。HLE 性能极高，但兼容性有限。
-- **LLE（Low-Level Emulation，底层模拟）**：精确模拟每个硬件组件的时钟周期行为。**MAME** 是典型代表，追求考古级的精确还原。LLE 兼容性极佳，但对宿主性能要求高。
-- **混合模拟**：现代模拟器（如 Dolphin）通常采用混合策略——对性能敏感的部分使用 HLE，对精确性要求高的部分使用 LLE，在性能与兼容性之间取得平衡。
+- **HLE（High-Level Emulation，高层模拟）**：不模拟底层硬件，而是直接用宿主系统的功能替代原始系统调用。代表作 [**UltraHLE**](https://en.wikipedia.org/wiki/UltraHLE)（1999 年）是第一个能在当时的 PC 上流畅运行 N64 游戏的模拟器，轰动一时。HLE 性能极高，但兼容性有限。
+- **LLE（Low-Level Emulation，底层模拟）**：精确模拟每个硬件组件的时钟周期行为。[**MAME**](https://www.mamedev.org) 是典型代表，追求考古级的精确还原。LLE 兼容性极佳，但对宿主性能要求高。
+- **混合模拟**：现代模拟器（如 [**Dolphin**](https://dolphin-emu.org)）通常采用混合策略——对性能敏感的部分使用 HLE，对精确性要求高的部分使用 LLE，在性能与兼容性之间取得平衡。
 
 **代表性项目**
 
 | 主机 | 模拟器 | 技术 |
 |------|--------|------|
-| NES | Mesen | 高精度解释执行 |
-| SNES | Snes9x | 解释执行 + 优化 |
-| N64 | Mupen64Plus | 动态重编译 |
-| GameCube/Wii | **Dolphin** | JIT，模拟器工程的标杆 |
-| Wii U | Cemu | JIT，开源 |
-| Switch | Ryujinx, Eden | JIT + GPU 着色器翻译 |
-| PS3 | RPCS3 | JIT + Vulkan 渲染 |
-| PSP | PPSSPP | JIT |
-| GBA | mGBA | 高精度，修正了老牌 VBA 的时序错误 |
-| NDS | MelonDS | 2D/3D 混合渲染，联机模拟 |
-| 3DS | Azahar, Citron | Citra 停止维护后的社区分支 |
+| NES | [Mesen](https://github.com/SourMesen/Mesen2) | 高精度解释执行 |
+| SNES | [Snes9x](https://www.snes9x.com) | 解释执行 + 优化 |
+| N64 | [Mupen64Plus](https://mupen64plus.org) | 动态重编译 |
+| GameCube/Wii | [**Dolphin**](https://dolphin-emu.org) | JIT，模拟器工程的标杆 |
+| Wii U | [Cemu](https://cemu.info) | JIT，开源 |
+| Switch | [Ryujinx](https://ryujinx.org), Eden | JIT + GPU 着色器翻译 |
+| PS3 | [RPCS3](https://rpcs3.net) | JIT + Vulkan 渲染 |
+| PSP | [PPSSPP](https://www.ppsspp.org) | JIT |
+| GBA | [mGBA](https://mgba.io) | 高精度，修正了老牌 VBA 的时序错误 |
+| NDS | [MelonDS](https://melonds.kuribo64.net) | 2D/3D 混合渲染，联机模拟 |
+| 3DS | Azahar, [Citron](https://git.citron-emu.org/Citron/Citron) | Citra 停止维护后的社区分支 |
 
-**RetroArch** 是模拟器领域的"万能外壳"，通过加载不同的 Libretro 核心来运行不同主机的游戏，提供统一的界面、成就系统（RetroAchievements）和强大的滤镜效果。它支持几乎所有平台（Windows、Linux、macOS、Android、iOS）。在 iOS 上，**Delta** 是更受欢迎的选择，它提供了更符合 Apple 设计语言的用户体验。
+[**RetroArch**](https://www.retroarch.com) 是模拟器领域的"万能外壳"，通过加载不同的 [Libretro](https://www.libretro.com) 核心来运行不同主机的游戏，提供统一的界面、成就系统（RetroAchievements）和强大的滤镜效果。它支持几乎所有平台（Windows、Linux、macOS、Android、iOS）。在 iOS 上，[**Delta**](https://faq.deltaemulator.com) 是更受欢迎的选择，它提供了更符合 Apple 设计语言的用户体验。
 
 模拟器的发展触动了游戏公司的蛋糕，把它推到了法律的灰色地带：模拟器本身是合法的——在美国、日本、英国等大多数国家，开发和使用模拟器并不违法。但获取游戏 ROM 和 BIOS 文件则处于著作权法的灰色地带。这种紧张关系在任天堂身上体现得最为激烈：Switch 模拟器 **Ryujinx** 和 **Yuzu** 先后被任天堂以法律手段逼停——Yuzu 的开发者最终与任天堂达成和解，支付 240 万美元赔偿金并关闭项目。东半球最强法务部，名副其实。
 
@@ -107,7 +107,7 @@
 
 这就是全系统模拟器的使命——模拟整台计算机，包括 CPU、内存和外围硬件。
 
-**QEMU** 由 **Fabrice Bellard** 创建，是模拟领域的瑞士军刀。他可是一个传奇级别的超级程序员——还写了 FFmpeg（几乎所有视频软件的底层引擎）、TCC（Tiny C Compiler）、QuickJS（一个极小的 JavaScript 引擎）和 JSLinux（在浏览器里跑完整 Linux），曾用个人电脑打破圆周率计算的世界纪录。一个人包揽了视频编码、C 编译器、JavaScript 引擎和 PC 模拟器四个完全不相关的领域。
+[**QEMU**](https://www.qemu.org) 由 **Fabrice Bellard** 创建，是模拟领域的瑞士军刀。他可是一个传奇级别的超级程序员——还写了 [FFmpeg](https://ffmpeg.org)（几乎所有视频软件的底层引擎）、[TCC](https://bellard.org/tcc)（Tiny C Compiler）、[QuickJS](https://bellard.org/quickjs)（一个极小的 JavaScript 引擎）和 [JSLinux](https://bellard.org/jslinux)（在浏览器里跑完整 Linux），曾用个人电脑打破圆周率计算的世界纪录。一个人包揽了视频编码、C 编译器、JavaScript 引擎和 PC 模拟器四个完全不相关的领域。
 
 - **TCG（Tiny Code Generator）**：三阶段翻译引擎（前端 → IR → 后端），将客户机指令转换为宿主机指令。优先考虑快速编译而非最优代码生成。
 - **两种模式**：
@@ -115,7 +115,7 @@
   - **全系统模拟**：模拟整台 PC——CPU、内存、IDE 控制器、VGA、网卡等。可以启动完整的操作系统。
 - **KVM 加速**：当宿主和客户机架构相同时（如 x86 on x86），QEMU 委托给硬件虚拟化（Intel VT-x / AMD-V）以获得接近原生的性能。
 
-**UTM** 是 QEMU 的 macOS/iOS GUI 封装，增加了：
+[**UTM**](https://mac.getutm.app) 是 QEMU 的 macOS/iOS GUI 封装，增加了：
 - Apple **Hypervisor.framework** 集成，在 Apple Silicon 上实现原生速度的 ARM64 虚拟机。
 - SPICE 协议，支持剪贴板共享和自适应分辨率。
 - 针对 iOS 代码签名限制的 JIT 变通方案。
@@ -155,7 +155,7 @@
 
 #### Box64 / Box86
 
-**Box64** 是一个轻量级的开源 x86_64→ARM64 动态二进制翻译器，运行在 Linux 上。
+[**Box64**](https://github.com/ptitSeb/box64) 是一个轻量级的开源 x86_64→ARM64 动态二进制翻译器，运行在 Linux 上。
 它是由法国开发者 **ptitSeb** 创建，最初在 Pandora 掌机等小型 ARM 开发板上起步。ptitSeb 几乎以一己之力完成了 Box86/Box64 的核心开发，长期活跃在 ARM 开发板和掌机社区。他的 GitHub 提交记录密度极高，对各种边缘情况和游戏兼容性的修复速度极快。Box64 项目在他的推动下，已从一个小众的爱好者工具成长为 ARM Linux 生态中不可或缺的基础设施。
 
 - **工作原理**：Box64 是一个独立的可执行文件，包裹 x86 程序运行。通过 Linux 的 `binfmt_misc` 机制，可以注册为 x86 ELF 二进制文件的默认处理器，使执行过程对用户透明。
@@ -171,7 +171,7 @@ Box86 是其 32 位对应版本，用于 x86→ARM32 翻译。
 
 #### FEX-Emu
 
-**FEX-Emu** 是 Box64 的一个更"学院派"的替代方案，采用清晰的三阶段编译器架构：
+[**FEX-Emu**](https://fex-emu.com) 是 Box64 的一个更"学院派"的替代方案，采用清晰的三阶段编译器架构：
 
 1. **前端**：将 x86/x86_64 指令解码为架构无关的**中间表示（IR）**。
 2. **优化器**：对 IR 进行优化（死代码消除、常量折叠）。
@@ -191,14 +191,14 @@ FEX 的主导开发者是 **Ryan Houdek**（社区 ID Sonicadvance1），他曾�
 
 ### 3.1 Wine（Wine Is Not an Emulator）
 
-**Wine** 项目始于 1993 年，由 **Alexandre Julliard** 发起——当时 Linux 内核才 2 岁。它在运行时将 Windows API 调用翻译为 POSIX/Linux 等价调用，不模拟 CPU 指令，只为操作系统接口提供兼容层。
+[**Wine**](https://www.winehq.org) 项目始于 1993 年，由 **Alexandre Julliard** 发起——当时 Linux 内核才 2 岁。它在运行时将 Windows API 调用翻译为 POSIX/Linux 等价调用，不模拟 CPU 指令，只为操作系统接口提供兼容层。
 
 - 在 Linux 之上实现 Windows 系统调用、DLL 加载、注册表和 COM 基础设施。
 - 提供 x86 和 ARM64 两种构建版本。在 ARM64 上运行时，Wine 处理 API 翻译，而另一个工具（Box64 或 FEX）处理指令翻译。
 
 ### 3.2 WineVDM（otvdm）：16 位 Windows 程序的"活化石"
 
-一个专门的工具，使 64 位 Windows 能够运行 **16 位** Windows 3.1 时代的程序——对于没有现代替代品的遗留工业和医疗软件至关重要。
+[**WineVDM**](https://github.com/otya128/winevdm)是一个专门的工具，使 64 位 Windows 能够运行 **16 位** Windows 3.1 时代的程序——对于没有现代替代品的遗留工业和医疗软件至关重要。
 
 上面这些工具解决的是是 CPU 指令和操作系统 API 的翻译问题。但游戏还多一个麻烦——GPU。
 
@@ -208,8 +208,8 @@ FEX 的主导开发者是 **Ryan Houdek**（社区 ID Sonicadvance1），他曾�
 
 **核心翻译层：**
 
-- **DXVK**：将 **DirectX 9/10/11** 调用实时翻译为 **Vulkan**。这是整个图形翻译链中技术含量最高的组件之一——它需要将 DirectX 复杂的渲染状态机实时映射为 Vulkan 的命令缓冲区模型，涉及着色器重编译、资源绑定模型转换和同步原语的重新设计。DXVK 的出现使得 Linux 上的 Windows 游戏性能从"勉强能跑"飞跃到"接近原生"。
-- **VKD3D-Proton**：将 **DirectX 12** 翻译为 **Vulkan**。由于 DX12 和 Vulkan 都是现代低开销 API，两者的概念模型更为接近，翻译效率也更高。
+- [**DXVK**](https://github.com/doitsujin/dxvk)：将 **DirectX 9/10/11** 调用实时翻译为 **Vulkan**。这是整个图形翻译链中技术含量最高的组件之一——它需要将 DirectX 复杂的渲染状态机实时映射为 Vulkan 的命令缓冲区模型，涉及着色器重编译、资源绑定模型转换和同步原语的重新设计。DXVK 的出现使得 Linux 上的 Windows 游戏性能从"勉强能跑"飞跃到"接近原生"。
+- [**VKD3D-Proton**](https://github.com/HansKristian-Work/vkd3d-proton)：将 **DirectX 12** 翻译为 **Vulkan**。由于 DX12 和 Vulkan 都是现代低开销 API，两者的概念模型更为接近，翻译效率也更高。
 - **WineD3D**：Wine 内置的传统方案，将 **DirectX** 翻译为 **OpenGL**。适用于较老的游戏和不支持 Vulkan 的环境，但性能不如 DXVK。
 - **D3DMetal**：Apple GPTK 的核心组件，将 **DirectX 11/12** 翻译为 **Metal**。Apple 在 Wine 的 DirectX 实现基础上深度定制，直接对接自家的 Metal 图形引擎，实现了 Mac 上 Windows 游戏的高效运行。
 
@@ -232,9 +232,9 @@ FEX 的主导开发者是 **Ryan Houdek**（社区 ID Sonicadvance1），他曾�
 
 Linux 上跑 Windows 程序的生态，核心引擎都是 Wine —— 但除非是硬核用户，不会想直接跟 Wine 打交道，他们接触的是各种各样的"集成器"。
 
-**Proton** 是其中影响最大的。Valve 为 Steam Deck 量身打造了这套方案，组合了 Wine、DXVK、VKD3D-Proton 和各种游戏兼容性补丁。它本身不是二进制翻译器，但对普通玩家来说，Proton 把"在 Linux 上玩 Windows 游戏"从技术挑战变成了开箱即用，驱动着 Steam Deck 的整个 Windows 游戏库。
+[**Proton**](https://github.com/ValveSoftware/Proton) 是其中影响最大的。Valve 为 Steam Deck 量身打造了这套方案，组合了 Wine、DXVK、VKD3D-Proton 和各种游戏兼容性补丁。它本身不是二进制翻译器，但对普通玩家来说，Proton 把"在 Linux 上玩 Windows 游戏"从技术挑战变成了开箱即用，驱动着 Steam Deck 的整个 Windows 游戏库。
 
-Steam 之外的生态同样活跃。**Lutris** 是一个开源游戏启动器，覆盖 Steam、Epic、GOG、战网甚至模拟器——它自动为每款游戏配置最优的 Wine 版本和 DXVK 参数，省去手动调环境的痛苦。**Heroic Games Launcher** 专攻 Epic 和 GOG 两个平台，也是 Wine 之上的封装。而 **Bottles** 走的是更底层的路线——它提供 GUI 管理 Wine 前缀（WINEPREFIX），让你像用虚拟环境一样创建隔离的 Windows 运行环境，适合需要精细控制的玩家和开发测试场景。
+Steam 之外的生态同样活跃。[**Lutris**](https://lutris.net) 是一个开源游戏启动器，覆盖 Steam、Epic、GOG、战网甚至模拟器——它自动为每款游戏配置最优的 Wine 版本和 DXVK 参数，省去手动调环境的痛苦。[**Heroic Games Launcher**](https://heroicgameslauncher.com) 专攻 Epic 和 GOG 两个平台，也是 Wine 之上的封装。而 [**Bottles**](https://usebottles.com) 走的是更底层的路线——它提供 GUI 管理 Wine 前缀（WINEPREFIX），让你像用虚拟环境一样创建隔离的 Windows 运行环境，适合需要精细控制的玩家和开发测试场景。
 
 Proton 撬动了 x86 Windows 游戏在 Linux 上的生态。而 Apple 在用自家芯片替换 Intel 芯片时，面临的问题更极端——它要把整个 x86 Mac 生态搬到 ARM。
 
@@ -253,7 +253,7 @@ Apple 并非第一次面对架构迁移。2006 年，Mac 从 PowerPC 迁移到 I
 
 但 Rosetta 2 解决的是 ISA 翻译——它让 x86 Mac 应用跑在 ARM Mac 上。如果目标是 **x86 Windows 程序**，光有指令翻译还不够，还需要 API 翻译层。在这条路上，Wine 生态比 Apple 更早入场。
 
-**CrossOver** 由 CodeWeavers 公司开发，是 Wine 的商业版——它在 Wine 基础上做了大量兼容性调优和自动化配置，让普通用户不用手动折腾 Wine 前缀和 DLL 配置就能直接运行 Windows 应用。**Whisky** 则走开源免费路线，专为 Apple Silicon Mac 设计，把 Wine + GPTK + D3DMetal 打包成一个简洁的 SwiftUI 界面——点几下就能跑 Windows 游戏，一度是 M 系列 Mac 上最流行的游戏方案之一。可惜 Whisky 已停止更新。
+[**CrossOver**](https://www.codeweavers.com/crossover) 由 CodeWeavers 公司开发，是 Wine 的商业版——它在 Wine 基础上做了大量兼容性调优和自动化配置，让普通用户不用手动折腾 Wine 前缀和 DLL 配置就能直接运行 Windows 应用。**Whisky** 则走开源免费路线，专为 Apple Silicon Mac 设计，把 Wine + GPTK + D3DMetal 打包成一个简洁的 SwiftUI 界面——点几下就能跑 Windows 游戏，一度是 M 系列 Mac 上最流行的游戏方案之一。可惜 Whisky 已停止更新。
 
 Apple 自己则在 2023 年 WWDC 上出手了。**GPTK（Game Porting Toolkit）**，其核心同样是 **Wine**——Apple 在 Wine 基础上深度定制，集成了自家的 Metal 图形 API 翻译层（将 DirectX 11/12 调用翻译为 Metal），并与 Rosetta 2 紧密配合。GPTK 的意义在于：这家以封闭生态著称的公司，选择了站在开源社区的肩膀上。Wine 三十年的积累，成了 Apple Silicon Mac 游戏生态的关键基石。GPTK 2.0 进一步改善了兼容性和性能。
 
