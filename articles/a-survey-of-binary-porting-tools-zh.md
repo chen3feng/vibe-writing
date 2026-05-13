@@ -228,9 +228,13 @@ FEX 的主导开发者是 **Ryan Houdek**（社区 ID Sonicadvance1），他曾�
 
 前两章分别介绍了指令翻译和 ABI 翻译的单项技术。但在真实世界中，跨平台运行往往需要将多种技术组合成完整的技术栈——指令翻译 + API 兼容 + 图形翻译 + 系统集成，形成一套"组合拳"。本章介绍这些集成方案。
 
-### 4.1 Proton（Valve）：Steam Deck 背后的全家桶
+### 4.1 Linux 上的 Windows 生态：从 Proton 到游戏启动器
 
-**Proton** 是 Valve 为 Linux 上的 Steam 打造的集成层，组合了 Wine、DXVK、VKD3D-Proton（用于 DirectX 12）和各种补丁。它本身不是二进制翻译器，但却是这些技术在规模化部署上最成功的案例，驱动着 Steam Deck 的整个 Windows 游戏库。
+Linux 上跑 Windows 程序的生态，核心引擎都是 Wine —— 但除非是硬核用户，不会想直接跟 Wine 打交道，他们接触的是各种各样的"集成器"。
+
+**Proton** 是其中影响最大的。Valve 为 Steam Deck 量身打造了这套方案，组合了 Wine、DXVK、VKD3D-Proton 和各种游戏兼容性补丁。它本身不是二进制翻译器，但对普通玩家来说，Proton 把"在 Linux 上玩 Windows 游戏"从技术挑战变成了开箱即用，驱动着 Steam Deck 的整个 Windows 游戏库。
+
+Steam 之外的生态同样活跃。**Lutris** 是一个开源游戏启动器，覆盖 Steam、Epic、GOG、战网甚至模拟器——它自动为每款游戏配置最优的 Wine 版本和 DXVK 参数，省去手动调环境的痛苦。**Heroic Games Launcher** 专攻 Epic 和 GOG 两个平台，也是 Wine 之上的封装。而 **Bottles** 走的是更底层的路线——它提供 GUI 管理 Wine 前缀（WINEPREFIX），让你像用虚拟环境一样创建隔离的 Windows 运行环境，适合需要精细控制的玩家和开发测试场景。
 
 Proton 撬动了 x86 Windows 游戏在 Linux 上的生态。而 Apple 在用自家芯片替换 Intel 芯片时，面临的问题更极端——它要把整个 x86 Mac 生态搬到 ARM。
 
