@@ -10,7 +10,7 @@
 - 在 Android 手机上用 **Winlator** 打开《Firewatch》——一个 PC 平台的独立游戏，在 6 寸触摸屏上渲染出了怀俄明荒野的暮色。
 - 在浏览器标签页里玩《红色警戒 2》——二十多年前的 RTS 经典，没有安装任何东西，一个 URL 就回到了千禧年的网吧下午。从 NES、GBA 到 Switch，在**模拟器**上重温了好几代任天堂的经典。
 
-工作中也在做类似的事。在 Windows 上用 **WSL** 跑 Linux 开发环境——一套 Ubuntu 就在 Windows 里原生运行，不需要虚拟机。更有意思的是，我在 M1 Mac 上装了一个 **ARM64 版的 Windows 11 虚拟机**，结果意外发现它竟然能运行 x64 的 Windows 软件——一个 ARM 芯片上的虚拟机里的 ARM Windows，在运行 x86 程序。套娃套到第三层，居然还跑得很流畅。
+工作中也在做类似的事。在 Windows 上用 [**WSL**](https://learn.microsoft.com/en-us/windows/wsl/) 跑 Linux 开发环境——一套 Ubuntu 就在 Windows 里原生运行，不需要虚拟机。更有意思的是，我在 M1 Mac 上装了一个 **ARM64 版的 Windows 11 虚拟机**，结果意外发现它竟然能运行 x64 的 Windows 软件——一个 ARM 芯片上的虚拟机里的 ARM Windows，在运行 x86 程序。套娃套到第三层，居然还跑得很流畅。
 
 每次折腾成功，我都会对着屏幕思考：这**到底是怎么做到的**？一颗 ARM 芯片，是怎么"假装"自己是 x86 的？一个 Linux 系统，是怎么让 Windows 程序以为自己还住在老家？
 
@@ -215,8 +215,8 @@ FEX 的主导开发者是 **Ryan Houdek**（社区 ID Sonicadvance1），他曾�
 
 **驱动与适配层：**
 
-- **Mesa / Turnip**：**Turnip** 是 Mesa 项目中针对高通 Adreno GPU 的开源 Vulkan 驱动。在 Android 设备上，它让 DXVK 翻译出的 Vulkan 指令能够高效地在手机 GPU 上执行，是 Winlator 图形性能的关键。
-- **Zink**：一个将 **OpenGL** 调用翻译为 **Vulkan** 的 Mesa 驱动层。在只有 Vulkan 驱动的环境中（如某些 Android 设备），Zink 为需要 OpenGL 的老旧应用提供了兼容路径。
+- [**Mesa**](https://docs.mesa3d.org) / [**Turnip**](https://docs.mesa3d.org/drivers/freedreno.html)：**Turnip** 是 Mesa 项目中针对高通 Adreno GPU 的开源 Vulkan 驱动。在 Android 设备上，它让 DXVK 翻译出的 Vulkan 指令能够高效地在手机 GPU 上执行，是 Winlator 图形性能的关键。
+- [**Zink**](https://docs.mesa3d.org/drivers/zink.html)：一个将 **OpenGL** 调用翻译为 **Vulkan** 的 Mesa 驱动层。在只有 Vulkan 驱动的环境中（如某些 Android 设备），Zink 为需要 OpenGL 的老旧应用提供了兼容路径。
 
 **翻译链的层叠效应：**
 
@@ -242,7 +242,7 @@ Proton 撬动了 x86 Windows 游戏在 Linux 上的生态。而 Apple 在用自�
 
 Apple 并非第一次面对架构迁移。2006 年，Mac 从 PowerPC 迁移到 Intel x86 时，Apple 推出了初代 **Rosetta**（后称 Rosetta 1），通过软件翻译让 PowerPC 应用在 Intel Mac 上继续运行——虽然能跑，但性能损耗明显，用户体验只能说"勉强可用"。2020 年，当 Apple 宣布再次换道、从 Intel x86 迁移到自研的 Apple Silicon（ARM64）时，他们带来了 **Rosetta 2**——一个从架构设计上就截然不同的全新翻译器。这一次，Apple 将十五年前的教训转化为了一套"软硬件垂直整合"的极致方案：自研芯片中埋入专用硬件支持，系统内核深度集成翻译引擎，编译器工具链全面配合。
 
-**Rosetta 2** 被广泛认为是二进制翻译的黄金标准。
+[**Rosetta 2**](https://developer.apple.com/documentation/apple-silicon/about-the-rosetta-translation-environment) 被广泛认为是二进制翻译的黄金标准。
 
 - **AOT（提前编译）翻译**：安装 x86 应用时，macOS 在后台静默地将整个二进制文件翻译为 ARM64。当你启动它时，CPU 运行的几乎是纯 ARM 代码。
 - **JIT 回退**：对于运行时生成代码的程序（如 JavaScript 引擎），Rosetta 2 回退到即时翻译。
@@ -253,13 +253,13 @@ Apple 并非第一次面对架构迁移。2006 年，Mac 从 PowerPC 迁移到 I
 
 但 Rosetta 2 解决的是 ISA 翻译——它让 x86 Mac 应用跑在 ARM Mac 上。如果目标是 **x86 Windows 程序**，光有指令翻译还不够，还需要 API 翻译层。在这条路上，Wine 生态比 Apple 更早入场。
 
-[**CrossOver**](https://www.codeweavers.com/crossover) 由 CodeWeavers 公司开发，是 Wine 的商业版——它在 Wine 基础上做了大量兼容性调优和自动化配置，让普通用户不用手动折腾 Wine 前缀和 DLL 配置就能直接运行 Windows 应用。**Whisky** 则走开源免费路线，专为 Apple Silicon Mac 设计，把 Wine + GPTK + D3DMetal 打包成一个简洁的 SwiftUI 界面——点几下就能跑 Windows 游戏，一度是 M 系列 Mac 上最流行的游戏方案之一。可惜 Whisky 已停止更新。
+[**CrossOver**](https://www.codeweavers.com/crossover) 由 CodeWeavers 公司开发，是 Wine 的商业版——它在 Wine 基础上做了大量兼容性调优和自动化配置，让普通用户不用手动折腾 Wine 前缀和 DLL 配置就能直接运行 Windows 应用。[**Whisky**](https://getwhisky.app) 则走开源免费路线，专为 Apple Silicon Mac 设计，把 Wine + GPTK + D3DMetal 打包成一个简洁的 SwiftUI 界面——点几下就能跑 Windows 游戏，一度是 M 系列 Mac 上最流行的游戏方案之一。可惜 Whisky 已停止更新。
 
-Apple 自己则在 2023 年 WWDC 上出手了。**GPTK（Game Porting Toolkit）**，其核心同样是 **Wine**——Apple 在 Wine 基础上深度定制，集成了自家的 Metal 图形 API 翻译层（将 DirectX 11/12 调用翻译为 Metal），并与 Rosetta 2 紧密配合。GPTK 的意义在于：这家以封闭生态著称的公司，选择了站在开源社区的肩膀上。Wine 三十年的积累，成了 Apple Silicon Mac 游戏生态的关键基石。GPTK 2.0 进一步改善了兼容性和性能。
+Apple 自己则在 2023 年 WWDC 上出手了。[**GPTK（Game Porting Toolkit）**](https://developer.apple.com/games/game-porting-toolkit/)，其核心同样是 **Wine**——Apple 在 Wine 基础上深度定制，集成了自家的 Metal 图形 API 翻译层（将 DirectX 11/12 调用翻译为 Metal），并与 Rosetta 2 紧密配合。GPTK 的意义在于：这家以封闭生态著称的公司，选择了站在开源社区的肩膀上。Wine 三十年的积累，成了 Apple Silicon Mac 游戏生态的关键基石。GPTK 2.0 进一步改善了兼容性和性能。
 
 这套方案的完整链路是：x86 Windows 游戏 → Rosetta 2（指令翻译）→ Wine/GPTK（API 翻译）→ D3DMetal（图形翻译）→ Metal GPU 原生执行。
 
-但遗憾的是反过来就不行。目前没有任何方案能让 macOS 的 GUI 程序在 Windows 或 Linux 上运行。macOS 的 Cocoa/SwiftUI 框架不像 Windows 的 Win32 API 有明确的边界——它深度绑定在 XNU 内核上，没有一条可以被拦截和翻译的干净分界线。Wine 能成功，部分原因是微软把 Win32 API 当公共承诺来维护；Apple 没给这个承诺。唯一有点接近的尝试是 **Darling**，一个在 Linux 上跑 macOS 二进制文件的开源项目——但它迄今只支持命令行程序，跑个 `grep` 和 `clang` 还行，启动 Finder 别想了。Windows 上更是空白。Mac 是整个二进制兼容网络里唯一"只进不出"的节点——别的平台都能把软件送出去，只有 Mac 只接收不发送。目前跨平台运行 Mac 应用唯一可行的方案是虚拟机——这已经超出了本文的讨论范围。
+但遗憾的是反过来就不行。目前没有任何方案能让 macOS 的 GUI 程序在 Windows 或 Linux 上运行。macOS 的 Cocoa/SwiftUI 框架不像 Windows 的 Win32 API 有明确的边界——它深度绑定在 XNU 内核上，没有一条可以被拦截和翻译的干净分界线。Wine 能成功，部分原因是微软把 Win32 API 当公共承诺来维护；Apple 没给这个承诺。唯一有点接近的尝试是 [**Darling**](https://www.darlinghq.org)，一个在 Linux 上跑 macOS 二进制文件的开源项目——但它迄今只支持命令行程序，跑个 `grep` 和 `clang` 还行，启动 Finder 别想了。Windows 上更是空白。Mac 是整个二进制兼容网络里唯一"只进不出"的节点——别的平台都能把软件送出去，只有 Mac 只接收不发送。目前跨平台运行 Mac 应用唯一可行的方案是虚拟机——这已经超出了本文的讨论范围。
 
 ### 4.3 Microsoft XTA / Prism（x86-to-Arm）
 
@@ -275,7 +275,7 @@ Arm64EC 的权衡：它牺牲了一些 ARM64 性能（参数传递的寄存器�
 
 ### 4.4 Hangover：跨架构的 Wine
 
-**Hangover** 将 Wine 与二进制翻译器（FEX 或 Box64）桥接，在 ARM64 Linux 上运行 x86 Windows 应用。截至 11.0 版本，它提供无缝集成，不再依赖 QEMU。
+[**Hangover**](https://github.com/AndreRH/hangover) 将 Wine 与二进制翻译器（FEX 或 Box64）桥接，在 ARM64 Linux 上运行 x86 Windows 应用。截至 11.0 版本，它提供无缝集成，不再依赖 QEMU。
 
 ### 4.5 WSL 的演进：微软的兼容性折衷
 
@@ -325,14 +325,14 @@ WSL 的演进路径本身就是二进制兼容技术的一个缩影：WSL1 试�
 
 ### 4.6 安卓上的"套娃"架构：在移动端运行 PC 游戏
 
-**Winlator** 是一个 Android 应用，将多种开源技术组合成完整的技术栈，用于在 ARM 手机上运行 Windows x86 游戏：
+[**Winlator**](https://winlator.org) 是一个 Android 应用，将多种开源技术组合成完整的技术栈，用于在 ARM 手机上运行 Windows x86 游戏：
 
 | 层级 | 技术 | 用途 |
 |------|------|------|
 | CPU 翻译 | Box64 / FEX-Emu | x86 → ARM64 指令翻译 |
 | OS 兼容 | Wine | Windows API → Linux API |
 | 图形 | DXVK + Turnip/Mesa | DirectX → Vulkan |
-| 容器 | PRoot | 无需 root 的 Linux 文件系统 |
+| 容器 | [PRoot](https://proot-me.github.io) | 无需 root 的 Linux 文件系统 |
 | 显示 | Xvnc / Wayland | 在 Android 上渲染 GUI |
 
 **性能表现**：根据社区测试，Winlator 的运行效率通常可达原生性能的 **40%–80%**，具体取决于负载类型：
@@ -360,7 +360,7 @@ Android SDK 自带的官方模拟器，基于 **QEMU** 构建，是开发者最�
 
 #### BlueStacks
 
-**BlueStacks** 是最早也是最知名的商业安卓模拟器，2011 年首次发布，目标用户是想在 PC 大屏上玩手游的玩家。
+[**BlueStacks**](https://www.bluestacks.com) 是最早也是最知名的商业安卓模拟器，2011 年首次发布，目标用户是想在 PC 大屏上玩手游的玩家。
 
 - **技术架构**：底层同样基于虚拟化技术（早期使用 VirtualBox 内核，后来切换到自研的 Hypervisor），运行定制的 x86 Android 系统。
 - **游戏优化**：BlueStacks 的核心竞争力在于针对游戏的深度优化——键鼠映射、多开实例、高帧率模式、智能资源分配等。
@@ -414,7 +414,7 @@ AOT 相比 JIT 带来了几个关键优势：
 
 这些局限决定了**纯 AOT 在通用场景下不可行**。Rosetta 2 的实际架构是 **"AOT 为主 + JIT 回退"**——对安装时可见的代码做 AOT 全量翻译，对运行时生成代码的部分回退到 JIT。这正是 2026 年最务实的混合范式。
 
-在开源世界，龙芯中科的 **LATX**（x86→LoongArch）采用了类似思路——以 AOT 预翻译为主、解释执行为动态回退，并且 LoongArch ISA 内置了 176 条二进制翻译扩展指令（LBT）从硬件层面加速翻译。项目开源于 [GitHub: lat-opensource/lat](https://github.com/lat-opensource/lat)。
+在开源世界，龙芯中科的 [**LATX**](https://github.com/LoongsonLab/LATX)（x86→LoongArch）采用了类似思路——以 AOT 预翻译为主、解释执行为动态回退，并且 LoongArch ISA 内置了 176 条二进制翻译扩展指令（LBT）从硬件层面加速翻译。
 
 | 维度 | 静态翻译（Rosetta 2 AOT / LATX） | 动态翻译（FEX / Box64） |
 |------|----------------------------------|--------------------------|
@@ -451,7 +451,7 @@ AOT 相比 JIT 带来了几个关键优势：
 
 ### 5.3 FPGA 硬件重构：从逻辑门开始的物理复刻
 
-**MiSTer FPGA** 和 **Analogue Pocket** 采用了截然不同的方案：它们不使用软件模拟，而是对 FPGA 芯片重新编程，物理重建原始主机的电路。结果：**零延迟**，周期精确的复现。
+[**MiSTer FPGA**](https://mister-devel.github.io/MkDocs_MiSTer) 和 [**Analogue Pocket**](https://www.analogue.co/pocket) 采用了截然不同的方案：它们不使用软件模拟，而是对 FPGA 芯片重新编程，物理重建原始主机的电路。结果：**零延迟**，周期精确的复现。
 
 抛弃软件翻译，利用可编程逻辑实现纳秒级的"真·异构运行"——这是二进制兼容的终极形态：不是翻译指令，而是重建执行指令的硬件本身。如果你是追求纳秒级精确时序的游戏速通玩家，或者需要保存濒危街机硬件的博物馆策展人——FPGA 是你唯一的答案。
 
@@ -473,7 +473,7 @@ Wasm 作为一种"中间指令集"，正在成为跨平台模拟的通用基础�
 
 ### 6.2 v86 案例：在浏览器沙箱内跑 Windows
 
-**v86** 是一个开源的浏览器端 x86 PC 模拟器，CPU 模拟核心用 Rust 编写并编译为 WebAssembly，设备模拟与前端界面使用 JavaScript。主要特性：
+[**v86**](https://github.com/copy/v86) 是一个开源的浏览器端 x86 PC 模拟器，CPU 模拟核心用 Rust 编写并编译为 WebAssembly，设备模拟与前端界面使用 JavaScript。主要特性：
 - 完整的 Intel 80386+ 指令集模拟
 - 硬件模拟：IDE、PS/2、Sound Blaster 16、NE2000 网卡
 - **快照/恢复**：保存并即时恢复完整的虚拟机状态——实现在浏览器标签页中"即时启动"Windows 98
@@ -482,11 +482,11 @@ Wasm 作为一种"中间指令集"，正在成为跨平台模拟的通用基础�
 ### 6.3 DOSBox + Emscripten（JS-DOS）：经典 DOS 游戏的 Web 复活
 
 在浏览器中运行 DOS 游戏的经典方案：
-1. **DOSBox**（C++）模拟带 VGA 和 Sound Blaster 的 x86 PC
-2. **Emscripten** 将 DOSBox 编译为 WebAssembly
+1. [**DOSBox**](https://www.dosbox.com)（C++）模拟带 VGA 和 Sound Blaster 的 x86 PC
+2. [**Emscripten**](https://emscripten.org) 将 DOSBox 编译为 WebAssembly
 3. 浏览器通过 Canvas/WebGL 渲染，通过 Web Audio API 播放音频
 
-**JS-DOS** 是最流行的封装库，将部署简化为几行 JavaScript。
+[**JS-DOS**](https://js-dos.com) 是最流行的封装库，将部署简化为几行 JavaScript。
 
 当我在浏览器里看到《仙剑奇侠传》的柳树下、李逍遥初遇赵灵儿的画面，以及《红色警戒》里基洛夫空艇缓缓飞过盟军基地的场景时，恍惚间仿佛回到了二十多年前趴在 CRT 显示器前的那些下午。技术在进步，但那些像素背后承载的记忆，从未褪色。
 
@@ -512,7 +512,7 @@ Wasm 作为一种"中间指令集"，正在成为跨平台模拟的通用基础�
 
 - **语义等价性证明**：将源架构（如 x86）和目标架构（如 ARM64）的指令语义形式化为数学模型，然后证明翻译器生成的目标代码在所有可能的输入下都与源代码产生相同的可观测行为。
 - **内存模型验证**：形式化方法在验证内存序翻译的正确性方面尤为关键。可以精确建模 TSO（x86）和弱内存序（ARM）之间的语义差异，证明翻译器插入的内存屏障既不多余（影响性能）也不遗漏（导致 Bug）。
-- **当前进展与挑战**：学术界已有针对简化指令子集的形式化验证工作（如 CompCert 编译器的验证思路），但将其扩展到完整的 x86-64 指令集（包括 SIMD、浮点、系统指令等）仍然是一个开放性难题。指令集的庞大规模和边界情况的复杂性使得完全形式化验证在短期内难以实现，但针对关键翻译路径的局部验证已经展现出实用价值。
+- **当前进展与挑战**：学术界已有针对简化指令子集的形式化验证工作（如 [CompCert](https://compcert.org) 编译器的验证思路），但将其扩展到完整的 x86-64 指令集（包括 SIMD、浮点、系统指令等）仍然是一个开放性难题。指令集的庞大规模和边界情况的复杂性使得完全形式化验证在短期内难以实现，但针对关键翻译路径的局部验证已经展现出实用价值。
 
 形式化验证代表了二进制翻译领域从"工程经验驱动"向"数学证明驱动"的范式转变——虽然距离全面应用还有很长的路，但它指明了通往"零误差翻译"的方向。
 
@@ -538,9 +538,9 @@ Wasm 作为一种"中间指令集"，正在成为跨平台模拟的通用基础�
 
 2024 年，两个独立研究团队分别从不同路径验证了 LLM 做二进制翻译的可行性：
 
-**Forklift（2024 年 4 月）**：爱丁堡大学团队开发的神经二进制提升器（Neural Lifter），使用 Transformer 模型将 x86/ARM/RISC-V 汇编直接翻译为 LLVM IR——一种架构无关的中间表示。与传统手写提升器相比，Forklift 多翻译了 **2.5 倍** 的 x86 程序，是 GPT-4 的 **4.4 倍**。它的 ISA 无关设计意味着：添加新指令集只需微调汇编编码器，无需重写任何翻译规则。
+[**Forklift**](https://arxiv.org/abs/2404.16041)（2024 年 4 月）：爱丁堡大学团队开发的神经二进制提升器（Neural Lifter），使用 Transformer 模型将 x86/ARM/RISC-V 汇编直接翻译为 LLVM IR——一种架构无关的中间表示。与传统手写提升器相比，Forklift 多翻译了 **2.5 倍** 的 x86 程序，是 GPT-4 的 **4.4 倍**。它的 ISA 无关设计意味着：添加新指令集只需微调汇编编码器，无需重写任何翻译规则。
 
-**CRT（2024 年 11 月）**：穆罕默德·本·扎耶德人工智能大学发布的 CISC-RISC 转译器，直接在 x86 汇编 → ARM/RISC-V 汇编之间做端到端翻译。关键发现是：一个经过领域微调的 **1.3B 参数小模型**（配合定制汇编 tokenizer）远超 GPT-4o 等通用大模型的表现——大模型在这类任务上的准确率仅 7–8%。CRT 达到 **79.25%**（x86→ARMv5）和 **88.68%**（x86→RISC-V64）的翻译准确率。更惊人的是性能：在 Apple M2 上实测，CRT 翻译出的代码相比 Rosetta 2 提速 **1.73 倍**，功耗降低 **1.47 倍**。
+[**CRT**](https://arxiv.org/abs/2411.16341)（2024 年 11 月）：穆罕默德·本·扎耶德人工智能大学发布的 CISC-RISC 转译器，直接在 x86 汇编 → ARM/RISC-V 汇编之间做端到端翻译。关键发现是：一个经过领域微调的 **1.3B 参数小模型**（配合定制汇编 tokenizer）远超 GPT-4o 等通用大模型的表现——大模型在这类任务上的准确率仅 7–8%。CRT 达到 **79.25%**（x86→ARMv5）和 **88.68%**（x86→RISC-V64）的翻译准确率。更惊人的是性能：在 Apple M2 上实测，CRT 翻译出的代码相比 Rosetta 2 提速 **1.73 倍**，功耗降低 **1.47 倍**。
 
 这些成果的深层启示不在于具体数字，而在于它验证了一个方向：**二进制翻译不是自然语言问题，也不是通用推理问题——它是高度专业化的代码语义问题**。一个小模型，配合领域数据训练和针对性 tokenizer，就能在这个狭窄领域超越通用大模型。而代码、模型、数据集的全部开源（CRT 发布于 Hugging Face），意味着这个方向的入场门槛正在急剧降低。
 
