@@ -115,11 +115,6 @@
   - **全系统模拟**：模拟整台 PC——CPU、内存、IDE 控制器、VGA、网卡等。可以启动完整的操作系统。
 - **KVM 加速**：当宿主和客户机架构相同时（如 x86 on x86），QEMU 委托给硬件虚拟化（Intel VT-x / AMD-V）以获得接近原生的性能。
 
-[**UTM**](https://mac.getutm.app) 是 QEMU 的 macOS/iOS GUI 封装，增加了：
-- Apple **Hypervisor.framework** 集成，在 Apple Silicon 上实现原生速度的 ARM64 虚拟机。
-- SPICE 协议，支持剪贴板共享和自适应分辨率。
-- 针对 iOS 代码签名限制的 JIT 变通方案。
-
 ### 1.3 性能瓶颈：全硬件路径模拟的沉重负担
 
 全系统模拟和精确的游戏主机模拟面临共同的性能挑战：模拟从 CPU 到总线、中断控制器及外设的完整硬件环境，每一层都引入额外的开销。QEMU 的 TCG 引擎优先考虑编译速度而非代码质量，生成的宿主机器码效率有限；而追求周期精确的主机模拟器（如 MAME）则需要在每个时钟周期同步所有虚拟硬件组件的状态——想象一下，你要模拟一颗 CPU、一块声卡、一个显卡、一个中断控制器，还要让它们在每个时钟周期都保持和真机一模一样的状态。这种精度令人敬畏，代价也同样令人敬畏。这些因素使得全系统模拟难以满足高性能生产环境的需求。但怎样在"不模拟整台机器"的前提下，只翻译一个程序？下一章的答案是：把翻译器塞进操作系统，让它只盯着一个二进制文件。
@@ -254,6 +249,8 @@ Apple 并非第一次面对架构迁移。2006 年，Mac 从 PowerPC 迁移到 I
 但 Rosetta 2 解决的是 ISA 翻译——它让 x86 Mac 应用跑在 ARM Mac 上。如果目标是 **x86 Windows 程序**，光有指令翻译还不够，还需要 API 翻译层。在这条路上，Wine 生态比 Apple 更早入场。
 
 [**CrossOver**](https://www.codeweavers.com/crossover) 由 CodeWeavers 公司开发，是 Wine 的商业版——它在 Wine 基础上做了大量兼容性调优和自动化配置，让普通用户不用手动折腾 Wine 前缀和 DLL 配置就能直接运行 Windows 应用。[**Whisky**](https://getwhisky.app) 则走开源免费路线，专为 Apple Silicon Mac 设计，把 Wine + GPTK + D3DMetal 打包成一个简洁的 SwiftUI 界面——点几下就能跑 Windows 游戏，一度是 M 系列 Mac 上最流行的游戏方案之一。可惜 Whisky 已停止更新。
+
+QEMU 在 macOS 中也没有缺席，不过它的主要表现形式是虚拟机。[**UTM**](https://mac.getutm.app) 是 QEMU 的 macOS/iOS 前端——得益于 Apple Silicon 对 **Hypervisor.framework** 的深度集成，跑 ARM64 客户机时可以达到接近原生的性能，同时还支持 SPICE 协议实现剪贴板共享和自适应分辨率。如果客户机是 x86 架构，UTM 则回退到 QEMU 的 TCG 引擎做指令模拟——性能和 ARM64 原生虚拟机不在一个量级，但至少能用。它的定位和 Wine 路线互补：CrossOver/Whisky 适合"只想跑一个 Windows 程序"，UTM 适合"需要一个完整的操作系统环境"。
 
 Apple 自己则在 2023 年 WWDC 上出手了。[**GPTK（Game Porting Toolkit）**](https://developer.apple.com/games/game-porting-toolkit/)，其核心同样是 **Wine**——Apple 在 Wine 基础上深度定制，集成了自家的 Metal 图形 API 翻译层（将 DirectX 11/12 调用翻译为 Metal），并与 Rosetta 2 紧密配合。GPTK 的意义在于：这家以封闭生态著称的公司，选择了站在开源社区的肩膀上。Wine 三十年的积累，成了 Apple Silicon Mac 游戏生态的关键基石。GPTK 2.0 进一步改善了兼容性和性能。
 
@@ -501,6 +498,16 @@ Wasm 作为一种"中间指令集"，正在成为跨平台模拟的通用基础�
 | SNES | Snes9x.js | Emscripten + C++ |
 | GBA | IodineGBA | JavaScript + WebGL |
 | 多系统 | RetroArch Web | Emscripten + Libretro 核心 |
+
+### 6.5 超越模拟：字节码转译与引擎编译
+
+上面这些方案本质上都是"把模拟器搬进浏览器"——源程序没变，只是宿主从操作系统变成了 WASM 运行时。但还有两条更激进的路，直接把源程序本身变成了浏览器原生代码。
+
+[**Eaglercraft**](https://eaglercraft.com) 瞄准了 Minecraft Java 版。Java 程序的目标平台是 JVM，和浏览器八竿子打不着。但开发者用 [TeaVM](https://teavm.org)——一个将 Java 字节码直接编译为 JavaScript/WebAssembly 的编译器——把 Minecraft 1.8 的完整源码转译成了浏览器原生代码。没有 JVM，没有 `java` 命令，Chrome 就是你的运行时。这是在字节码层面做了一次完整的跨语言二进制翻译。今年五一假期期间，我儿子就在庐山的别墅中用 M4 MacBook Pro 上玩了 Minecraft。
+
+还有更"工业化"的路线。Unity 引擎自 2018 年起就支持将 C++ 运行时通过 [Emscripten](https://emscripten.org) 编译为 WebAssembly，3D 渲染走 WebGL 2.0。前阵子我分析 **June's Journey**（一款 Unity 制作的寻物解谜手游，我用来学英语）的网页版时，浏览器 DevTools 里看到的全是 WASM 模块和 WebGL draw call——和原生版一模一样的游戏逻辑，只是运行时变成了浏览器。这本质上就是把整个游戏引擎提前编译成了浏览器可以消费的中间码。
+
+从 DOSBox 模拟旧硬件，到 TeaVM 转译 Java 字节码，再到 Unity 直接把 C++ 引擎编译成 WASM——浏览器正在成为所有平台的公约数。
 
 ## 七、形式化验证（Formal Verification）：零误差的模拟
 
