@@ -83,6 +83,22 @@ print(format_as_text(turns))   # Markdown
 print(format_as_json(turns))   # JSON
 ```
 
+## Convention: Saving Drafts as Writing Material
+
+When a user provides an AI chat share link as writing material, fetch it and
+**save the raw text into the `data/` directory** for long-term reuse.
+
+Naming: `gemini-<topic>.txt` (or the matching platform prefix). Use an English
+kebab-case topic that is **concise and to the point**. Examples:
+
+- `gemini-code-reading.txt` — AI-assisted code reading
+- `gemini-combined-cc-library.txt` — C++ combined static library build rule
+- `gemini-hpc.txt` — history of high-performance computing
+- `gemini-virtualization.txt` — history of virtualization
+
+> The legacy files `gemini_chat_1.txt` / `gemini_chat_2.txt` use ad-hoc names —
+> do not follow them; always use a topic name for new files.
+
 ## Prerequisites
 
 ```bash
