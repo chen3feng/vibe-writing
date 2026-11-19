@@ -11,6 +11,7 @@ import json
 import pytest
 
 from vibe_writing._format import format_as_json, format_as_text
+from vibe_writing._markdown import element_to_markdown
 from vibe_writing.fetch import _detect_platform, fetch, supported_platforms
 from vibe_writing.fetch_chatgpt import is_chatgpt_url, parse_chatgpt_html
 from vibe_writing.fetch_doubao import is_doubao_url, parse_doubao_html
@@ -48,6 +49,15 @@ class TestFormatAsText:
         assert "Q1:" in result
         assert "Q2:" in result
         assert "Q3:" not in result
+
+    def test_rich_question_on_own_line(self):
+        turns = [
+            {"role": "user", "text": "### [A link](https://example.com)\n\nFollow-up?"},
+            {"role": "model", "text": "Answer"},
+        ]
+        result = format_as_text(turns)
+        assert "## Q1:\n\n### [A link](https://example.com)" in result
+        assert "## Q1: ###" not in result
 
     def test_unknown_role(self):
         turns = [{"role": "unknown", "text": "raw content"}]
@@ -277,9 +287,104 @@ class TestParseChatgptHtml:
         assert turns[0]["role"] == "user"
         assert turns[1]["role"] == "model"
 
+    def test_dom_preserves_tables(self):
+        html = """
+        <html><body>
+            <div data-message-author-role="assistant">
+              <p>Comparison:</p>
+              <table>
+                <tr><th>Tech</th><th>Goal</th></tr>
+                <tr><td>Quantization</td><td>Compression</td></tr>
+              </table>
+            </div>
+        </body></html>
+        """
+        turns = parse_chatgpt_html(html)
+        assert len(turns) == 1
+        assert "| Tech | Goal |" in turns[0]["text"]
+        assert "| Quantization | Compression |" in turns[0]["text"]
+
     def test_empty_html(self):
         turns = parse_chatgpt_html("<html><body></body></html>")
         assert turns == []
+
+
+# ---------------------------------------------------------------------------
+# Rich-text Markdown converter
+# ---------------------------------------------------------------------------
+
+
+class TestElementToMarkdown:
+    def test_table_preserved(self):
+        html = """
+        <div data-message-author-role="assistant">
+          <p>Before</p>
+          <table>
+            <tr><th>Name</th><th>Role</th></tr>
+            <tr><td>Alice</td><td>Engineer</td></tr>
+          </table>
+        </div>
+        """
+        from bs4 import BeautifulSoup
+
+        element = BeautifulSoup(html, "html.parser").select_one(
+            "[data-message-author-role]"
+        )
+        markdown = element_to_markdown(element)
+        assert "| Name | Role |" in markdown
+        assert "| --- | --- |" in markdown
+        assert "| Alice | Engineer |" in markdown
+
+    def test_lists_and_code_block(self):
+        html = """
+        <div data-message-author-role="assistant">
+          <ul><li>one</li><li>two</li></ul>
+          <pre><code class="language-cpp">int main() {}</code></pre>
+        </div>
+        """
+        from bs4 import BeautifulSoup
+
+        element = BeautifulSoup(html, "html.parser").select_one(
+            "[data-message-author-role]"
+        )
+        markdown = element_to_markdown(element)
+        assert "- one" in markdown
+        assert "- two" in markdown
+        assert "```cpp" in markdown
+        assert "int main() {}" in markdown
+
+    def test_content_images_kept_favicons_dropped(self):
+        html = """
+        <div data-message-author-role="assistant">
+          <p>Text</p>
+          <img src="https://example.com/diagram.png" alt="diagram">
+          <img src="https://www.google.com/s2/favicons?domain=x&sz=32" alt="">
+        </div>
+        """
+        from bs4 import BeautifulSoup
+
+        element = BeautifulSoup(html, "html.parser").select_one(
+            "[data-message-author-role]"
+        )
+        markdown = element_to_markdown(element)
+        assert "![diagram](https://example.com/diagram.png)" in markdown
+        assert "favicons" not in markdown
+
+    def test_image_map_rewrites_links(self):
+        html = """
+        <div data-message-author-role="assistant">
+          <img src="https://cdn.example.com/a.png" alt="a">
+        </div>
+        """
+        from bs4 import BeautifulSoup
+
+        element = BeautifulSoup(html, "html.parser").select_one(
+            "[data-message-author-role]"
+        )
+        markdown = element_to_markdown(
+            element, image_map={"https://cdn.example.com/a.png": "assets/a.png"}
+        )
+        assert "![a](assets/a.png)" in markdown
 
 
 # ---------------------------------------------------------------------------

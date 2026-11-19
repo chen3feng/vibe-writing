@@ -15,6 +15,9 @@ for AI-assisted article writing workflows.
 
 **Description:** Given a share URL from a supported AI chat platform, fetch the
 page, render JavaScript, extract conversation turns, and return structured data.
+Rich text is preserved: tables become Markdown tables, code blocks become fenced
+blocks, lists stay lists, and images become Markdown image links (optionally
+downloaded locally).
 
 **Input:**
 
@@ -23,6 +26,7 @@ page, render JavaScript, extract conversation turns, and return structured data.
 | `url`     | string | ✅       |         | Share URL from a supported platform |
 | `format`  | string |          | `text`  | Output format: `text` or `json`    |
 | `wait`    | int    |          | `8`     | Seconds to wait for JS rendering   |
+| `assets_dir` | string |      |         | Download content images into this directory and rewrite image links |
 
 **Output:** Conversation turns — either as Markdown text or JSON array of
 `{role: "user"|"model", text: "..."}` objects.
@@ -71,6 +75,9 @@ uv run vibe-fetch <url> -f json -o output.json
 
 # With custom wait time
 uv run vibe-fetch <url> --wait 12
+
+# Download images next to the transcript
+uv run vibe-fetch <url> --assets-dir data/my-chat-assets -o data/my-chat.txt
 ```
 
 ### Option C: Python import
@@ -95,6 +102,11 @@ kebab-case topic that is **concise and to the point**. Examples:
 - `gemini-combined-cc-library.txt` — C++ combined static library build rule
 - `gemini-hpc.txt` — history of high-performance computing
 - `gemini-virtualization.txt` — history of virtualization
+- `chatgpt-llm-systems-book.txt` — LLM systems optimization book planning
+
+If the conversation contains images, pass
+`--assets-dir data/<same-name>-assets` so the Markdown points at local copies
+instead of expiring remote URLs.
 
 > The legacy files `gemini_chat_1.txt` / `gemini_chat_2.txt` use ad-hoc names —
 > do not follow them; always use a topic name for new files.

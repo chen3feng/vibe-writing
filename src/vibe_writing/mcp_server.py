@@ -30,11 +30,17 @@ mcp = FastMCP(
 
 
 @mcp.tool()
-def fetch_chat(url: str, format: str = "text", wait: int = 8) -> str:
+def fetch_chat(
+    url: str,
+    format: str = "text",
+    wait: int = 8,
+    assets_dir: str | None = None,
+) -> str:
     """Fetch a shared AI chat conversation and return its content.
 
     Automatically detects the platform (Gemini, ChatGPT, Doubao) from the URL,
     renders the page with a headless browser, and extracts conversation turns.
+    Tables, lists, code blocks and images are preserved as Markdown.
 
     Args:
         url: Share URL from a supported AI chat platform.
@@ -46,6 +52,9 @@ def fetch_chat(url: str, format: str = "text", wait: int = 8) -> str:
              - https://www.doubao.com/thread/<id>
         format: Output format — "text" for Markdown or "json" for structured JSON.
         wait: Seconds to wait for JavaScript rendering (default: 8).
+        assets_dir: Optional directory to download content images into.  When
+            set, Markdown image links point at the local files instead of
+            remote (possibly expiring) URLs.
 
     Returns:
         Conversation content as a string (Markdown text or JSON).
@@ -53,7 +62,7 @@ def fetch_chat(url: str, format: str = "text", wait: int = 8) -> str:
     from vibe_writing.fetch import fetch
     from vibe_writing._format import format_as_json, format_as_text
 
-    turns = fetch(url, wait_seconds=wait)
+    turns = fetch(url, image_dir=assets_dir, wait_seconds=wait)
 
     if format == "json":
         return format_as_json(turns)

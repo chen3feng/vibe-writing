@@ -26,5 +26,4 @@ uv.lock
 Thumbs.db
 
 # Data cache (large files, keep locally but don't commit)
-data/*.html
-data/*.png
+data/*

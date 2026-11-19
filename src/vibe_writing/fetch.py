@@ -52,7 +52,12 @@ def _detect_platform(url: str) -> str:
     return "unknown"
 
 
-def fetch(url: str, **kwargs) -> list[dict]:
+def fetch(
+    url: str,
+    *,
+    image_dir: str | None = None,
+    **kwargs,
+) -> list[dict]:
     """Fetch and parse a shared AI chat conversation.
 
     Automatically detects the platform (Gemini, ChatGPT, etc.) from the URL
@@ -60,8 +65,10 @@ def fetch(url: str, **kwargs) -> list[dict]:
 
     Args:
         url: A share URL from any supported AI chat platform.
+        image_dir: When given (ChatGPT only), download content images into this
+            directory and rewrite Markdown image links to the local files.
         **kwargs: Passed to the platform-specific fetcher
-            (e.g. ``wait_seconds``, ``timeout_ms``).
+            (e.g. ``wait_seconds``, ``timeout_ms``, ``proxy``).
 
     Returns:
         A list of conversation turn dicts, each with keys
@@ -86,7 +93,7 @@ def fetch(url: str, **kwargs) -> list[dict]:
     if platform == "chatgpt":
         from vibe_writing.fetch_chatgpt import fetch_and_parse
 
-        return fetch_and_parse(url, **kwargs)
+        return fetch_and_parse(url, image_dir=image_dir, **kwargs)
 
     if platform == "doubao":
         from vibe_writing.fetch_doubao import fetch_and_parse
@@ -163,19 +170,44 @@ def main() -> None:
         "--save-html",
         help="Also save the rendered HTML to this path (for debugging / caching)",
     )
+    parser.add_argument(
+        "--assets-dir",
+        help=(
+            "Download content images into this directory and reference them "
+            "from the Markdown (e.g. data/my-chat-assets)"
+        ),
+    )
+    parser.add_argument(
+        "--proxy",
+        help=(
+            "HTTP(S) proxy for the browser and image downloader. "
+            "Defaults to $HTTPS_PROXY / $ALL_PROXY."
+        ),
+    )
 
     args = parser.parse_args()
 
     platform = _detect_platform(args.url)
     print(f"Platform: {platform} | Fetching: {args.url}", file=sys.stderr)
 
+    image_map = None
     if args.save_html:
         # Fetch HTML separately so we can save it
         from vibe_writing._browser import fetch_rendered_html
 
-        html = fetch_rendered_html(args.url, wait_seconds=args.wait)
+        html = fetch_rendered_html(
+            args.url, wait_seconds=args.wait, proxy=args.proxy
+        )
         Path(args.save_html).write_text(html, encoding="utf-8")
         print(f"Rendered HTML saved to: {args.save_html}", file=sys.stderr)
+
+        if args.assets_dir:
+            from vibe_writing._assets import download_content_images
+
+            image_map = download_content_images(
+                html, args.assets_dir, proxy=args.proxy, referer=args.url
+            )
+            print(f"Downloaded {len(image_map)} images", file=sys.stderr)
 
         # Parse from saved HTML
         if platform == "gemini":
@@ -185,17 +217,27 @@ def main() -> None:
         elif platform == "chatgpt":
             from vibe_writing.fetch_chatgpt import parse_chatgpt_html
 
-            turns = parse_chatgpt_html(html)
+            turns = parse_chatgpt_html(html, image_map=image_map)
         elif platform == "doubao":
             from vibe_writing.fetch_doubao import parse_doubao_html
 
             turns = parse_doubao_html(html)
         else:
-            turns = fetch(args.url, wait_seconds=args.wait)
+            turns = fetch(
+                args.url,
+                image_dir=args.assets_dir,
+                wait_seconds=args.wait,
+                proxy=args.proxy,
+            )
     else:
-        turns = fetch(args.url, wait_seconds=args.wait)
+        turns = fetch(
+            args.url,
+            image_dir=args.assets_dir,
+            wait_seconds=args.wait,
+            proxy=args.proxy,
+        )
 
-    print(f"Parsed {len(turns) // 2} conversation turns", file=sys.stderr)
+    print(f"Parsed {len(turns)} turns", file=sys.stderr)
 
     if args.format == "json":
         output = format_as_json(turns)

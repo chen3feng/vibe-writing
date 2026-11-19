@@ -49,7 +49,14 @@ uv run vibe-fetch https://gemini.google.com/share/xxx -o output.txt
 
 # 输出为 JSON
 uv run vibe-fetch https://chatgpt.com/share/xxx -f json -o output.json
+
+# 同时下载正文图片，Markdown 中的图片链接会改成本地路径
+uv run vibe-fetch https://chatgpt.com/share/xxx \
+  --assets-dir data/my-chat-assets -o data/my-chat.txt
 ```
+
+表格、列表、代码块和图片都会保留为 GitHub 风格的 Markdown。如果页面或图片
+CDN 需要走代理，加 `--proxy`（或设置 `$HTTPS_PROXY`）。
 
 ## 作为库使用
 
@@ -87,6 +94,8 @@ vibe-fetch <url> [选项]
   -f, --format {text,json} 输出格式（默认：text）
   --wait SECONDS           等待 JS 渲染的秒数（默认：8）
   --save-html FILE         同时保存渲染后的 HTML（用于调试/缓存）
+  --assets-dir DIR         下载正文图片到该目录
+  --proxy URL              浏览器和图片下载使用的 HTTP(S) 代理
 ```
 
 ## MCP 服务
@@ -119,7 +128,7 @@ uv run vibe-mcp
 
 | 工具 | 说明 |
 |------|------|
-| `fetch_chat(url, format?, wait?)` | 抓取 AI 聊天分享链接的对话内容 |
+| `fetch_chat(url, format?, wait?, assets_dir?)` | 抓取 AI 聊天分享链接的对话内容 |
 | `list_platforms()` | 列出支持的平台和 URL 格式 |
 
 详见 [`SKILL.md`](SKILL.md)。
@@ -135,6 +144,8 @@ uv run vibe-mcp
 │   ├── fetch_doubao.py      # 豆包对话抓取与解析
 │   ├── mcp_server.py        # MCP 服务 —— AI 助手集成
 │   ├── _browser.py          # 共享的无头浏览器工具
+│   ├── _markdown.py         # HTML → Markdown（表格、列表、代码、图片）
+│   ├── _assets.py           # 正文图片收集与下载
 │   ├── _format.py           # 共享的格式化工具
 │   └── py.typed             # PEP 561 类型标记
 ├── SKILL.md                 # AI Skill 描述文件

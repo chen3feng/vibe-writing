@@ -40,7 +40,15 @@ uv run vibe-fetch https://gemini.google.com/share/xxx -o output.txt
 
 # Output as JSON
 uv run vibe-fetch https://chatgpt.com/share/xxx -f json -o output.json
+
+# Download content images next to the transcript (Markdown links are rewritten)
+uv run vibe-fetch https://chatgpt.com/share/xxx \
+  --assets-dir data/my-chat-assets -o data/my-chat.txt
 ```
+
+Tables, lists, code blocks and images are preserved as GitHub-flavoured
+Markdown. Use `--proxy` (or `$HTTPS_PROXY`) if the page or image CDN is only
+reachable through a proxy.
 
 ## Library Usage
 
@@ -78,6 +86,8 @@ Options:
   -f, --format {text,json} Output format (default: text)
   --wait SECONDS          Wait time for JS rendering (default: 8)
   --save-html FILE        Save rendered HTML for debugging/caching
+  --assets-dir DIR        Download content images into DIR
+  --proxy URL             HTTP(S) proxy for browser and image downloads
 ```
 
 ## MCP Server
@@ -110,7 +120,7 @@ Add to `.cursor/mcp.json` (or equivalent):
 
 | Tool | Description |
 |------|-------------|
-| `fetch_chat(url, format?, wait?)` | Fetch a shared AI chat conversation |
+| `fetch_chat(url, format?, wait?, assets_dir?)` | Fetch a shared AI chat conversation |
 | `list_platforms()` | List supported platforms and URL patterns |
 
 See [`SKILL.md`](SKILL.md) for full details.
@@ -126,6 +136,8 @@ See [`SKILL.md`](SKILL.md) for full details.
 │   ├── fetch_doubao.py      # Doubao conversation fetcher & parser
 │   ├── mcp_server.py        # MCP server — AI agent integration
 │   ├── _browser.py          # Shared headless browser utilities
+│   ├── _markdown.py         # HTML → Markdown (tables, lists, code, images)
+│   ├── _assets.py           # Content-image collection & downloading
 │   ├── _format.py           # Shared formatting helpers
 │   └── py.typed             # PEP 561 marker
 ├── SKILL.md                 # AI Skill descriptor

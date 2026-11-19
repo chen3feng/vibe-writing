@@ -20,7 +20,9 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
+from vibe_writing._assets import download_content_images
 from vibe_writing._browser import fetch_rendered_html
+from vibe_writing._markdown import element_to_markdown
 
 
 # ---------------------------------------------------------------------------
@@ -39,7 +41,12 @@ def is_chatgpt_url(url: str) -> bool:
 # ---------------------------------------------------------------------------
 
 
-def parse_chatgpt_html(html: str) -> list[dict]:
+def parse_chatgpt_html(
+    html: str,
+    *,
+    image_map: dict[str, str] | None = None,
+    base_url: str = "https://chatgpt.com/",
+) -> list[dict]:
     """Parse rendered ChatGPT share page HTML and extract conversation turns.
 
     Tries two strategies:
@@ -48,6 +55,9 @@ def parse_chatgpt_html(html: str) -> list[dict]:
 
     Args:
         html: Fully rendered HTML string from a ChatGPT share page.
+        image_map: Optional ``remote image URL -> local path`` mapping.  When
+            given, images in assistant answers point at the local copies.
+        base_url: Base URL for resolving relative links.
 
     Returns:
         A list of dicts with keys ``role`` (``'user'`` | ``'model'``) and ``text``.
@@ -57,8 +67,8 @@ def parse_chatgpt_html(html: str) -> list[dict]:
     if turns:
         return turns
 
-    # Strategy 2: DOM scraping
-    turns = _parse_from_dom(html)
+    # Strategy 2: DOM scraping (rich-text aware)
+    turns = _parse_from_dom(html, image_map=image_map, base_url=base_url)
     if turns:
         return turns
 
@@ -72,18 +82,39 @@ def parse_chatgpt_html(html: str) -> list[dict]:
     return []
 
 
-def fetch_and_parse(url: str, **kwargs) -> list[dict]:
+def fetch_and_parse(
+    url: str,
+    *,
+    image_dir: str | None = None,
+    proxy: str | None = None,
+    **kwargs,
+) -> list[dict]:
     """One-step convenience: fetch a ChatGPT share URL and return parsed turns.
 
     Args:
         url: A ChatGPT share URL.
+        image_dir: When given, download content images into this directory and
+            rewrite Markdown image links to the local files.
+        proxy: Optional HTTP(S) proxy used by both the browser and the image
+            downloader.
         **kwargs: Passed to :func:`~vibe_writing._browser.fetch_rendered_html`.
 
     Returns:
         A list of conversation turn dicts.
     """
-    html = fetch_rendered_html(url, **kwargs)
-    return parse_chatgpt_html(html)
+    kwargs.setdefault("wait_for_selector", "[data-message-author-role]")
+    html = fetch_rendered_html(url, proxy=proxy, **kwargs)
+
+    # Occasionally the page load finishes before React has mounted the
+    # conversation (or a transient error page is served).  Retry once.
+    if "data-message-author-role" not in html:
+        html = fetch_rendered_html(url, proxy=proxy, **kwargs)
+
+    image_map = None
+    if image_dir:
+        image_map = download_content_images(html, image_dir, proxy=proxy, referer=url)
+
+    return parse_chatgpt_html(html, image_map=image_map)
 
 
 # ---------------------------------------------------------------------------
@@ -222,8 +253,17 @@ def _extract_message_text(content: dict) -> str:
 # ---------------------------------------------------------------------------
 
 
-def _parse_from_dom(html: str) -> list[dict]:
-    """Fall back to DOM-based parsing for ChatGPT share pages."""
+def _parse_from_dom(
+    html: str,
+    *,
+    image_map: dict[str, str] | None = None,
+    base_url: str = "https://chatgpt.com/",
+) -> list[dict]:
+    """Fall back to DOM-based parsing for ChatGPT share pages.
+
+    Assistant messages are converted with the rich-text Markdown converter so
+    tables, lists, code blocks and images survive extraction.
+    """
     soup = BeautifulSoup(html, "html.parser")
 
     turns: list[dict] = []
@@ -234,7 +274,7 @@ def _parse_from_dom(html: str) -> list[dict]:
     if messages:
         for msg_el in messages:
             role_attr = msg_el.get("data-message-author-role", "")
-            text = msg_el.get_text(separator="\n", strip=True)
+            text = element_to_markdown(msg_el, image_map=image_map, base_url=base_url)
             if text:
                 role = "user" if role_attr == "user" else "model"
                 turns.append({"role": role, "text": text})
@@ -252,11 +292,15 @@ def _parse_from_dom(html: str) -> list[dict]:
             count = max(len(user_blocks), len(model_blocks))
             for i in range(count):
                 if i < len(user_blocks):
-                    text = user_blocks[i].get_text(separator="\n", strip=True)
+                    text = element_to_markdown(
+                        user_blocks[i], image_map=image_map, base_url=base_url
+                    )
                     if text:
                         turns.append({"role": "user", "text": text})
                 if i < len(model_blocks):
-                    text = model_blocks[i].get_text(separator="\n", strip=True)
+                    text = element_to_markdown(
+                        model_blocks[i], image_map=image_map, base_url=base_url
+                    )
                     if text:
                         turns.append({"role": "model", "text": text})
             if turns:

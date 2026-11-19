@@ -12,7 +12,16 @@ def format_as_text(turns: list[dict]) -> str:
     for turn in turns:
         if turn["role"] == "user":
             q_index += 1
-            lines.append(f"## Q{q_index}: {turn['text']}")
+            text = turn["text"].strip()
+            # Keep the "## Q1: question" form for simple one-line questions;
+            # put rich / multi-line questions on their own line so the text's
+            # own Markdown (links, headings) stays intact.
+            if "\n" in text or text.startswith(("#", ">", "|", "-", "*")):
+                lines.append(f"## Q{q_index}:")
+                lines.append("")
+                lines.append(text)
+            else:
+                lines.append(f"## Q{q_index}: {text}")
             lines.append("")
         elif turn["role"] == "model":
             lines.append(turn["text"])
